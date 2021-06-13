@@ -181,7 +181,7 @@ if aa$<>bb$ AND code(aa$)>0
 		printat42 (7,0):print42 "To set Plugboard: press CS+[A..Z]"
 		printat42 (8,0):print42 "To encode/decode: press [a..z]"
 		printat42 (10,0):print42 "  (c)2021 Menyiques (@setaseta on twitter)"
-
+		pintaQR()
 				
 		do
 		loop while tecla=code(inkey$)
@@ -505,6 +505,21 @@ sub pintaRotor(byval pos as ubyte, byval tipo as ubyte)
 	end if
 end sub
 
+sub pintaQR()
+for n=0 to 3
+	dir=charset+1224+n*32
+	dh=dir/256
+	dl=dir - dh*256
+	poke 23675,dl
+	poke 23676,dh
+	paper 0
+	ink 7
+	bright 0
+
+	print at 0+n,27;"\A\B\C\D"
+next n
+
+end sub
 SUB codifica(byval c as ubyte) 
       DIM n,tipo,ring,rotPos,desp as Ubyte
 
@@ -580,6 +595,7 @@ END SUB
 datos:
 asm
 defb 2,1,3,8
+charset:
 defb 60,0,60,189,60,129,60,189
 defb 60,189,60,189,0,189,60,189
 defb 60,189,60,189,60,189,60,129
@@ -606,12 +622,33 @@ defb 0,31,6,6,6,6,6,3,0,248,96,96,96,96,96,192,3,3,3,1,1,1,7,0,192,192,192,128,1
 defb 0,63,12,12,12,12,12,7,0,254,216,216,216,216,216,152,7,7,7,3,3,3,15,0,152,152,152,24,24,24,252,0
 defb 0,255,51,51,51,51,51,30,0,254,108,108,108,108,108,108,30,30,30,12,12,12,63,0,108,108,108,108,108,108,254,0
 defb 0,255,103,103,103,103,103,61,0,255,182,182,182,182,182,182,61,61,61,25,25,25,127,0,182,182,182,182,182,182,255,0
+
+qr:
+defb $fe,$82,$ba,$ba,$ba,$82,$fe,$00
+defb $d3,$65,$3d,$01,$31,$76,$aa,$4d
+defb $bb,$3a,$42,$ca,$ea,$f2,$ab,$e0
+defb $f8,$08,$e8,$e8,$e8,$08,$f8,$00
+defb $f2,$74,$f2,$cc,$7a,$c9,$73,$29
+defb $aa,$e3,$9f,$39,$41,$13,$2b,$14
+defb $5c,$27,$3d,$0c,$41,$e7,$d7,$ff
+defb $e8,$50,$d0,$10,$00,$60,$a0,$98
+defb $c7,$39,$3e,$21,$52,$00,$fe,$82
+defb $d8,$66,$65,$62,$2e,$aa,$51,$4d
+defb $a2,$3f,$40,$f2,$7f,$88,$2a,$d8
+defb $30,$10,$70,$38,$a8,$90,$d0,$e0
+defb $ba,$ba,$ba,$82,$fe,$00,$00,$00
+defb $05,$b8,$81,$ba,$fe,$00,$00,$00
+defb $af,$72,$e5,$f0,$83,$00,$00,$00
+defb $b8,$b0,$e8,$68,$50,$00,$00,$00
+
 end asm
 
 
 sub mainScreen(screen as ubyte)
 
 asm
+; Taken from 
+; https://tomdalby.com/other/lzf.html
 ld hl,data
 cp 0
 jr z, screen2
@@ -1155,6 +1192,10 @@ end sub
 
 sub click()
 asm
+;Taken from
+;https://zxspectrumcoding.wordpress.com/2019/02/02/sound-effects-in-your-game/
+;BeepFX player by Shiru
+;You are free to do whatever you want with this code
 
 playBasic:
 	ld a,0
