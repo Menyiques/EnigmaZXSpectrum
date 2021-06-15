@@ -1,38 +1,9 @@
 #include <print42.bas>
 
-REM letras=26*4=104 chars*8=832 bytes
-REM rotores=12*8=96 bytes
-REM plugs=5*8=40 bytes
-REM 104+17=121. 121/21=6 udg sets
-REM 23675 UDG addr 23675=88 23676=255=65368 21*8=168 bytes
-
-REM Rotor:   3,2,3,7
-REM Rotor 2: 8,2,8,7
-REM letras ROTOR 5,4 ; 10,4; 15,4
-REM LEDS: A3,B6,C9,D12,E15,F18,G21,H24,I27;10
-REM LEDS: J4,K7,L10,M13,N16,O19,P22,Q25;12
-REM LEDS: R3,S6,T9,U12,V15,W18,X21,Y24,Z27;14  
-REM PLUG OFF 4,19 HASTA 4,21
-REM PLUG ON 2,19 HASTA 2,21
-REM CIRCULO: 5,4
-
-
-REM INTERFAZ
-REM a-z encode
-REM A-Z PLUGBOARD
-REM 45 subir bajar anillo 1
-REM 67 subir bajar anillo 2
-REM 89 subir bajar anillo 3
-REM ^4 ^5  cambiar ringsetting anillo1
-REM ^6 ^7  cambiar ringsetting anillo2
-REM ^8 ^9  cambiar ringsetting anillo3 
-REM 123 cambiar de rotor
-REM NUMEROS ROMANOS 26=I, 27=II, 28=III, 29=IV, 30=V, 31=VI, 32=VII, 33=VIII
-
-dim a, tecla, encoded as Ubyte
+dim a, tecla as Ubyte
 dim n as Uinteger
+
 dim dir as Uinteger
-dim dh,dl as Ubyte
 
 REM Rotor,RingStellum,CurrentPos
 DIM rotorSetup(2,2) as Ubyte = {{0,0,0},{1,0,0},{2,0,0}}
@@ -61,26 +32,85 @@ DIM inverseRotorDefinition(8,25) as Ubyte={ _
        {10,15,22,5 ,9 ,16,2 ,4 ,17,7 ,14,18,4 ,13,1 ,21,19,12,8 ,20,6 ,3 ,11,16,15,24}, _
        {10,18,20,16,12,5 ,8 ,4 ,13,25,9 ,6 ,21,19,7 ,3 ,14,2 ,7 ,15,24,22,3 ,17,1 ,11} _
        } 
+
+DIM memory(210,2) as ubyte
+DIM memoryPointer as uinteger
+
+rem busca el principio de los datos
 DIM charset as uinteger
-
-for n=30000 to 65000
-if peek(n)=2 
-	if peek(n+1)=1 
-		if peek(n+2)=3 
-			if peek(n+3)=8 
-				charset=n+4
-				n=65000
-			end if
-		end if
-	end if 	
-end if
-
-next n
-
+buscaCharset()
 
 inicializaPantalla()
 
-
+Function codifica(byval c As ubyte) As ubyte
+    Dim n,tipo,ring,rotPos,desp As Ubyte
+    n=0
+    Do
+        if plugBoard(n*2)=c And plugBoard(n*2+1)<99
+        c=plugBoard((n*2)+1)
+        n=10
+        end If
+        if plugBoard(n*2+1)=c And plugBoard(n*2)<99 And n<99
+        c=plugBoard(n*2)
+        n=10
+        end If
+        n=n+1
+    Loop While n<10
+    
+    tipo=rotorSetup(2,0)
+    ring=rotorSetup(2,1)
+    rotPos=rotorSetup(2,2)
+    desp=rotorDefinition(tipo+1,(26+c+rotPos-ring) Mod 26)
+    c=(c+desp) Mod 26
+    
+    tipo=rotorSetup(1,0)
+    ring=rotorSetup(1,1)
+    rotPos=rotorSetup(1,2)
+    desp=rotorDefinition(tipo+1,(26+c+rotPos-ring) Mod 26)
+    c=(c+desp) Mod 26
+    
+    tipo=rotorSetup(0,0)
+    ring=rotorSetup(0,1)
+    rotPos=rotorSetup(0,2)
+    desp=rotorDefinition(tipo+1,(26+c+rotPos-ring) Mod 26)
+    c=(c+desp) Mod 26
+    
+    desp=rotorDefinition(0,c Mod 26)
+    c=(c+desp) Mod 26
+    
+    tipo=rotorSetup(0,0)
+    ring=rotorSetup(0,1)
+    rotPos=rotorSetup(0,2)
+    desp=inverseRotorDefinition(tipo+1,(26+c+rotPos-ring) Mod 26)
+    c=(26+c-desp) Mod 26
+    
+    tipo=rotorSetup(1,0)
+    ring=rotorSetup(1,1)
+    rotPos=rotorSetup(1,2)
+    desp=inverseRotorDefinition(tipo+1,(26+c+rotPos-ring) Mod 26)
+    c=(26+c-desp) Mod 26
+    
+    tipo=rotorSetup(2,0)
+    ring=rotorSetup(2,1)
+    rotPos=rotorSetup(2,2)
+    desp=inverseRotorDefinition(tipo+1,(26+c+rotPos-ring) Mod 26)
+    c=(26+c-desp) Mod 26
+    
+    n=0
+    Do
+        if plugBoard(n*2)=c And plugBoard(n*2+1)<99
+        c=plugBoard((n*2)+1)
+        n=10
+        end If
+        if plugBoard(n*2+1)=c And plugBoard(n*2)<99 And n<99
+        c=plugBoard(n*2)
+        n=10
+        end If
+        n=n+1
+    Loop While n<10
+    
+    Return c
+End Function
 
 REM Bucle principal
 bb$=""
@@ -90,48 +120,62 @@ aa$=inkey$
 if aa$<>bb$ AND code(aa$)>0
 	tecla=code (aa$)
 
-
 	if (tecla=49 OR tecla=50 OR tecla=51)
 		pintaRingSet(0)
 		changeRotor(tecla-49)
+		memoryPointer=0
 		click()
 	end if
 	if (tecla=52 OR tecla=53 OR tecla=54)
 		pintaRingSet(0)	
 		moveRotor(tecla-52,0)
+		memoryPointer=0
 		click()
 	end if
 	if (tecla=5)
 		pintaRingSet(0)
 		moveRotor(0,1)
+		memoryPointer=0
 		click()
 	end if
 	if (tecla=8)
 		pintaRingSet(0)
 		moveRotor(1,1)
+		memoryPointer=0
 		click()
 	end if
 	if (tecla=10)
 		pintaRingSet(0)
 		moveRotor(2,1)
+		memoryPointer=0
 		click()
 	end if
 	if tecla>=65 AND tecla<=90
 		pintaRingSet(0)
 		plugSetup(tecla-65)
+		memoryPointer=0
 		click()
 	end if
 	if tecla>=97 AND tecla <=122
+		dim encoded as ubyte
 		pintaRingSet(0)
 		moveRotor(2,0)
-		codifica(tecla-97)
+		encoded=codifica(tecla-97)
 		ilumina(encoded,1)
 		click()
 		do
 		loop while tecla=code(inkey$)
 		ilumina(encoded,0)
+		memory(memoryPointer,0)=tecla-97
+		memory(memoryPointer,1)=encoded
+		memoryPointer=memoryPointer+1
+		if memoryPointer>209
+			memoryPointer=0
+		end if
+
 	end if
 	if tecla=7 
+		memoryPointer=0
 		rotorSetup(0,1)=rotorSetup(0,1)+1
 		if rotorSetup(0,1)>25 
 			rotorSetup(0,1)=0
@@ -141,6 +185,7 @@ if aa$<>bb$ AND code(aa$)>0
 		pausa (5000)
 	end if
 	if tecla=6 
+		memoryPointer=0
 		rotorSetup(1,1)=rotorSetup(1,1)+1
 		if rotorSetup(1,1)>25 
 			rotorSetup(1,1)=0
@@ -150,7 +195,8 @@ if aa$<>bb$ AND code(aa$)>0
 		pausa (5000)
 
 	end if
-	if tecla=4 
+	if tecla=4
+		memoryPointer=0 
 		rotorSetup(2,1)=rotorSetup(2,1)+1
 		if rotorSetup(2,1)>25 
 			rotorSetup(2,1)=0
@@ -169,38 +215,108 @@ if aa$<>bb$ AND code(aa$)>0
 		print42(aa$)
 		paper 0
 		ink 7
+
+		dir=charset+1224
+		poke uinteger 23675,dir
 		
-		printat42 (0,0) :print42 "      ENIGMA MACHINE EMULATOR             "
 		print at 0,31;" "
-		printat42 (1,0) :print42 "      -----------------------             "
+		printat42 (0,0) :print42 "      ENIGMA MACHINE EMULATOR             ":print at 0,27;"\A\B\C\D"
 		print at 1,31;" "
-		printat42 (2,0) :print42 "                                          "
+		printat42 (1,0) :print42 "      -----------------------             ":print at 1,27;"\E\F\G\H"
 		print at 2,31;" "
-		printat42 (3,0) :print42 "To select rotors: press 1,2,3             "
+		printat42 (2,0) :print42 "                                          ":print at 2,27;"\I\J\K\L"
 		print at 3,31;" "
-		printat42 (4,0) :print42 "To set Ringstellun: press CS+1,2,3        "
+		printat42 (3,0) :print42 "To select rotors: press 1,2,3             ":print at 3,27;"\M\N\O\P"
 		print at 4,31;" "
-		printat42 (5,0) :print42 "To rotate rotors: press 4,5,6 or CS+4,5,6 "
+		printat42 (4,0) :print42 "To set Ringstellun: press CS+1,2,3        "
 		print at 5,31;" "
-		printat42 (6,0) :print42 "To set Plugboard: press CS+[A..Z]         "
+		printat42 (5,0) :print42 "To rotate rotors: press 4,5,6 or CS+4,5,6 "
 		print at 6,31;" "
-		printat42 (7,0) :print42 "To encode/decode: press [a..z]            "
+		printat42 (6,0) :print42 "To set Plugboard: press CS+[A..Z]         "
 		print at 7,31;" "
-		printat42 (8,0) :print42 "                                          "
+		printat42 (7,0) :print42 "To encode/decode: press [a..z]            "
 		print at 8,31;" "
-		printat42 (9,0) :print42 "  (c)2021 Menyiques (@setaseta on twitter)"
+		printat42 (8,0) :print42 "To see encoding historial: press Space    "
 		print at 9,31;" "
-		printat42 (10,0):print42 "                                          "
+		printat42 (9,0) :print42 "  (c)2021 Menyiques (@setaseta on twitter)"
 		print at 10,31;" "
+		printat42 (10,0):print42 "                                          "
 		
-		pintaQR()
+		
+		rem pintaQR()
 				
 		do
-		loop while tecla=code(inkey$)
+		loop while code(inkey$)=13
+		do
+		loop while inkey$=""
 				
-		border 7
 		inicializaPantalla()
 		click()
+	end if
+	
+	if tecla=32
+	
+	border 6:paper 6: ink 0: cls
+
+rot$=""
+for n=0 to 2
+if rotorSetup(n,0)=0
+	rot$=rot$+"I "
+elseif rotorSetup(n,0)=1
+	rot$=rot$+"II "
+elseif rotorSetup(n,0)=2
+	rot$=rot$+"III "
+elseif rotorSetup(n,0)=3
+	rot$=rot$+"IV "
+elseif rotorSetup(n,0)=4
+	rot$=rot$+"V "
+elseif rotorSetup(n,0)=5
+	rot$=rot$+"VI "
+elseif rotorSetup(n,0)=6
+	rot$=rot$+"VII "
+elseif rotorSetup(n,0)=7
+	rot$=rot$+"VII "
+end if
+next n	
+printat42(0,0):  print42 "Walzenlage                  Ringstellung"
+printat42(1,0):  print42 rot$ 
+printat42(1,31): print42 (str(rotorSetup(0,1)+1))
+printat42(1,34): print42 (str(rotorSetup(1,1)+1))
+printat42(1,37): print42 (str(rotorSetup(2,1)+1))
+
+printat42(3,0): print42 "      ---- Steckerverbindungen ----"                         
+for n=0 to 9
+printat42(4,n*3+5): print42(chr(plugBoard(n*2)+65)+chr(plugBoard(n*2+1)+65))
+next n
+
+dim e as ubyte
+dim q as ubyte
+dim w as ubyte
+e=0
+q=0
+w=0
+
+while (e*35+q*5+w<memoryPointer) 
+	printat42(6+e*3,w+q*6): print42 chr(memory(35*e+q*5+w,0)+65)
+	printat42(7+e*3,w+q*6): print42 chr(memory(35*e+q*5+w,1)+65)
+	w=w+1
+	if w>4 
+		w=0
+		q=q+1
+		if q>6
+			q=0
+			e=e+1
+		end if
+	end if
+end while
+	
+	do
+	loop while code(inkey$)=32
+	do
+	loop while inkey$=""
+
+	inicializaPantalla()
+	
 	end if
 
 	if rotorSetup(0,0)=1 and rotorSetup(1,0)=3 and rotorSetup(2,0)=4
@@ -226,7 +342,7 @@ end while
 
 sub inicializaPantalla()
 	 
-
+	border 7 
 	mainScreen(0)
 
 	for n=0 to 9
@@ -261,9 +377,7 @@ sub ilumina (byval letra as ubyte,byval modo as ubyte)
 	16
 
 	DIM germanLayout(25) as ubyte={9,22,20,11,2,12,13,14,7,15,16,25,24,23,8,17,0,3,10,4,6,21,1,19,18,5}
-	
-	rem b d z g 
-	
+		
 	letra=germanLayout(letra)
 
 	if letra>=0 and letra<9
@@ -440,11 +554,10 @@ end sub
 
 
 sub pintaPlug(byval x as ubyte, byval value as ubyte)
-	dir=charset+96
-	dh=dir/256
-	dl=dir - dh*256
-	poke 23675,dl
-	poke 23676,dh
+	dim dir as uinteger
+	dir = charset+96
+	poke uinteger 23675,dir
+
 	if value=0
 		bright 1
 		paper 0
@@ -468,17 +581,10 @@ end sub
 
 
 sub letra (byval x as ubyte,y as ubyte, letra as ubyte, byval media as ubyte)
-	over 0
-	dim wtemp as uinteger
-	wtemp=32*cast(integer,letra)
-	dir=charset+96+40+wtemp
-	dh=dir/256
-	dl=dir - dh*256
-	poke 23675,dl
-	poke 23676,dh
-	paper 7
-	ink 0
-	bright 1
+	dim dir as uinteger
+	dir=32*cast(integer,letra)+charset+96+40
+	poke uinteger 23675,dir
+	over 0:paper 7:ink 0:bright 1
 	if media=0
 		print at y,x;"\A\B"
 		bright 0
@@ -502,10 +608,7 @@ end sub
 
 sub pintaRotor(byval pos as ubyte, byval tipo as ubyte)
 	dir=charset
-	dh=dir/256
-	dl=dir - dh*256
-	poke 23675,dl
-	poke 23676,dh
+	poke uinteger 23675,dir
 	dim x as ubyte
 	x=pos*5+3
 	paper 0
@@ -531,11 +634,10 @@ end sub
 
 sub pintaQR()
 for n=0 to 3
+	dim dir as uinteger 
 	dir=charset+1224+n*32
-	dh=dir/256
-	dl=dir - dh*256
-	poke 23675,dl
-	poke 23676,dh
+	poke uinteger 23675,dir
+
 	paper 0
 	ink 7
 	bright 0
@@ -544,77 +646,7 @@ for n=0 to 3
 next n
 
 end sub
-SUB codifica(byval c as ubyte) 
-      DIM n,tipo,ring,rotPos,desp as Ubyte
 
-
-      n=0
-      do
-      	if plugBoard(n*2)=c AND plugBoard(n*2+1)<99
-      		c=plugBoard((n*2)+1)
-      		n=10
-      	end if
-      	if plugBoard(n*2+1)=c AND plugBoard(n*2)<99 AND n<99
-      		c=plugBoard(n*2)
-      		n=10
-      	end if
-       n=n+1
-      loop while n<10
-
-      tipo=rotorSetup(2,0)
-      ring=rotorSetup(2,1)
-      rotPos=rotorSetup(2,2)
-      desp=rotorDefinition(tipo+1,(26+c+rotPos-ring) mod 26)
-      c=(c+desp) mod 26
-      
-      tipo=rotorSetup(1,0)
-      ring=rotorSetup(1,1)
-      rotPos=rotorSetup(1,2)
-      desp=rotorDefinition(tipo+1,(26+c+rotPos-ring) mod 26)
-      c=(c+desp) mod 26
-      
-      tipo=rotorSetup(0,0)
-      ring=rotorSetup(0,1)
-      rotPos=rotorSetup(0,2)
-      desp=rotorDefinition(tipo+1,(26+c+rotPos-ring) mod 26)
-      c=(c+desp) mod 26
-      
-      desp=rotorDefinition(0,c mod 26)
-      c=(c+desp) mod 26
-      
-      tipo=rotorSetup(0,0)
-      ring=rotorSetup(0,1)
-      rotPos=rotorSetup(0,2)
-      desp=inverseRotorDefinition(tipo+1,(26+c+rotPos-ring) mod 26)
-      c=(26+c-desp) mod 26
-      
-      tipo=rotorSetup(1,0)
-      ring=rotorSetup(1,1)
-      rotPos=rotorSetup(1,2)
-      desp=inverseRotorDefinition(tipo+1,(26+c+rotPos-ring) mod 26)
-      c=(26+c-desp) mod 26
-
-      tipo=rotorSetup(2,0)
-      ring=rotorSetup(2,1)
-      rotPos=rotorSetup(2,2)
-      desp=inverseRotorDefinition(tipo+1,(26+c+rotPos-ring) mod 26)
-      c=(26+c-desp) mod 26
-
-      n=0
-      do
-      	if plugBoard(n*2)=c AND plugBoard(n*2+1)<99
-      		c=plugBoard((n*2)+1)
-      		n=10
-      	end if
-      	if plugBoard(n*2+1)=c AND plugBoard(n*2)<99 AND n<99
-      		c=plugBoard(n*2)
-      		n=10
-      	end if
-       n=n+1
-      loop while n<10
-	  
-  encoded=c
-END SUB
 
 datos:
 asm
@@ -1473,3 +1505,17 @@ Sample0Data:
 end asm
 end sub
 
+sub buscaCharset()
+for n=30000 to 65000
+if peek(n)=2 
+	if peek(n+1)=1 
+		if peek(n+2)=3 
+			if peek(n+3)=8 
+				charset=n+4
+				n=65000
+			end if
+		end if
+	end if 	
+end if
+next n
+end sub
