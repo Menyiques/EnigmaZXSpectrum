@@ -120,6 +120,15 @@ aa$=inkey$
 if aa$<>bb$ AND code(aa$)>0
 	tecla=code (aa$)
 
+	if tecla=12
+		moveRotor(2,1)
+		memoryPointer=memoryPointer-1
+		if memoryPointer>210
+			memoryPointer=0
+		end if
+		click()
+	end if
+
 	if (tecla=49 OR tecla=50 OR tecla=51)
 		pintaRingSet(0)
 		changeRotor(tecla-49)
@@ -210,6 +219,7 @@ if aa$<>bb$ AND code(aa$)>0
 		border 0
 		mainScreen(1)
 		click()
+		pausa(20000)
 
 		printat42(7,7+n*7)
 		print42(aa$)
@@ -224,27 +234,23 @@ if aa$<>bb$ AND code(aa$)>0
 		print at 1,31;" "
 		printat42 (1,0) :print42 "      -----------------------             ":print at 1,27;"\E\F\G\H"
 		print at 2,31;" "
-		printat42 (2,0) :print42 "                                          ":print at 2,27;"\I\J\K\L"
+		printat42 (2,0) :print42 "To select rotors: press 1,2,3             ":print at 2,27;"\I\J\K\L"
 		print at 3,31;" "
-		printat42 (3,0) :print42 "To select rotors: press 1,2,3             ":print at 3,27;"\M\N\O\P"
+		printat42 (3,0) :print42 "To set Ringstellung: press CS+1,2,3       ":print at 3,27;"\M\N\O\P"
 		print at 4,31;" "
-		printat42 (4,0) :print42 "To set Ringstellun: press CS+1,2,3        "
+		printat42 (4,0) :print42 "To rotate rotors: press 4,5,6 or CS+4,5,6 "
 		print at 5,31;" "
-		printat42 (5,0) :print42 "To rotate rotors: press 4,5,6 or CS+4,5,6 "
+		printat42 (5,0) :print42 "To set Plugboard: press CS+[A..Z]         "
 		print at 6,31;" "
-		printat42 (6,0) :print42 "To set Plugboard: press CS+[A..Z]         "
+		printat42 (6,0) :print42 "To encode/decode: press [a..z]            "
 		print at 7,31;" "
-		printat42 (7,0) :print42 "To encode/decode: press [a..z]            "
+		printat42 (7,0) :print42 "To see your encoding records: press Space "
 		print at 8,31;" "
-		printat42 (8,0) :print42 "To see encoding historial: press Space    "
-		print at 9,31;" "
-		printat42 (9,0) :print42 "  (c)2021 Menyiques (@setaseta on twitter)"
-		print at 10,31;" "
-		printat42 (10,0):print42 "                                          "
+		printat42 (8,0) :print42 "                                          "
+		print at 23,31;" ";
+		printat42 (23,0) :print42 "  (c)2021 Menyiques (@setaseta on twitter)"
 		
-		
-		rem pintaQR()
-				
+						
 		do
 		loop while code(inkey$)=13
 		do
@@ -278,15 +284,30 @@ elseif rotorSetup(n,0)=7
 	rot$=rot$+"VII "
 end if
 next n	
-printat42(0,0):  print42 "Walzenlage                  Ringstellung"
+printat42(0,0):  print42 "Walzenlage                    Ringstellung"
 printat42(1,0):  print42 rot$ 
-printat42(1,31): print42 (str(rotorSetup(0,1)+1))
-printat42(1,34): print42 (str(rotorSetup(1,1)+1))
-printat42(1,37): print42 (str(rotorSetup(2,1)+1))
+printat42(1,33): print42 (str(rotorSetup(0,1)+1))
+printat42(1,36): print42 (str(rotorSetup(1,1)+1))
+printat42(1,39): print42 (str(rotorSetup(2,1)+1))
 
-printat42(3,0): print42 "      ---- Steckerverbindungen ----"                         
+printat42(3,0): print42 "       ---- Steckerverbindungen ----"                         
 for n=0 to 9
-printat42(4,n*3+5): print42(chr(plugBoard(n*2)+65)+chr(plugBoard(n*2+1)+65))
+
+	if plugBoard(n*2)=99
+		char1="."
+	else
+		char1=chr(plugBoard(n*2)+65)
+	end if
+
+	if plugBoard(n*2+1)=99
+		char2="."
+	else
+		char2=chr(plugBoard(n*2+1)+65)
+	end if
+	
+	printat42(4,n*3+7): print42(char1)
+	printat42(4,n*3+8): print42(char2)
+
 next n
 
 dim e as ubyte
@@ -296,14 +317,16 @@ e=0
 q=0
 w=0
 
-while (e*35+q*5+w<memoryPointer) 
-	printat42(6+e*3,w+q*6): print42 chr(memory(35*e+q*5+w,0)+65)
-	printat42(7+e*3,w+q*6): print42 chr(memory(35*e+q*5+w,1)+65)
+PLOT 127, 10: DRAW 0,130
+
+while (e*18+q*6+w<memoryPointer) 
+	printat42(6+e,q*7+w): print42 chr(memory(e*18+q*6+w,0)+65)
+	printat42(6+e,q*7+w+22): print42 chr(memory(e*18+q*6+w,1)+65)
 	w=w+1
-	if w>4 
+	if w>5 
 		w=0
 		q=q+1
-		if q>6
+		if q>2
 			q=0
 			e=e+1
 		end if
@@ -500,19 +523,18 @@ sub moveRotor(byval rotor as ubyte, byval move as ubyte)
 	 	dim notch1,notch2 as ubyte
 
 
-	 	if rotor>0 AND move=0
-	 		if rotorSetup(rotor,0)>4
-	 			notch1=26
-	 			notch2=13
-	 		else
-	 			notch1=rotorDefinition(rotorSetup(rotor,0)+1,26)
-	 			notch2=notch1
-	 		endif
-	 		if notch1=rotorSetup(rotor,2)+1 OR notch2=rotorSetup(rotor,2)+1
-				moveRotor(rotor-1,0)
-			end if
+	 	
+	 	if rotorSetup(rotor,0)>4
+	 		notch1=26+move
+	 		notch2=13+move
+	 	else
+	 		notch1=rotorDefinition(rotorSetup(rotor,0)+1,26)+move
+	 		notch2=notch1
+	 	endif
+	 	if notch1=rotorSetup(rotor,2)+1 OR notch2=rotorSetup(rotor,2)+1
+			moveRotor(rotor-1,move)
 		end if
-
+		
 	 	if move=0
 		rotorSetup(rotor,2)=rotorSetup(rotor,2)+1
 		if rotorSetup(rotor,2)=26
@@ -632,21 +654,6 @@ sub pintaRotor(byval pos as ubyte, byval tipo as ubyte)
 	end if
 end sub
 
-sub pintaQR()
-for n=0 to 3
-	dim dir as uinteger 
-	dir=charset+1224+n*32
-	poke uinteger 23675,dir
-
-	paper 0
-	ink 7
-	bright 0
-
-	print at 0+n,27;"\A\B\C\D"
-next n
-
-end sub
-
 
 datos:
 asm
@@ -681,22 +688,7 @@ defb 0,255,51,51,51,51,51,30,0,254,108,108,108,108,108,108,30,30,30,12,12,12,63,
 defb 0,255,103,103,103,103,103,61,0,255,182,182,182,182,182,182,61,61,61,25,25,25,127,0,182,182,182,182,182,182,255,0
 
 qr:
-defb $fe,$82,$ba,$ba,$ba,$82,$fe,$00
-defb $d3,$65,$3d,$01,$31,$76,$aa,$4d
-defb $bb,$3a,$42,$ca,$ea,$f2,$ab,$e0
-defb $f8,$08,$e8,$e8,$e8,$08,$f8,$00
-defb $f2,$74,$f2,$cc,$7a,$c9,$73,$29
-defb $aa,$e3,$9f,$39,$41,$13,$2b,$14
-defb $5c,$27,$3d,$0c,$41,$e7,$d7,$ff
-defb $e8,$50,$d0,$10,$00,$60,$a0,$98
-defb $c7,$39,$3e,$21,$52,$00,$fe,$82
-defb $d8,$66,$65,$62,$2e,$aa,$51,$4d
-defb $a2,$3f,$40,$f2,$7f,$88,$2a,$d8
-defb $30,$10,$70,$38,$a8,$90,$d0,$e0
-defb $ba,$ba,$ba,$82,$fe,$00,$00,$00
-defb $05,$b8,$81,$ba,$fe,$00,$00,$00
-defb $af,$72,$e5,$f0,$83,$00,$00,$00
-defb $b8,$b0,$e8,$68,$50,$00,$00,$00
+defb 254,130,186,186,186,130,254,0,239,225,178,215,7,156,170,76,63,160,46,46,46,160,191,128,128,128,128,128,128,128,128,0,206,244,114,61,191,239,63,48,16,111,30,180,170,134,6,236,151,156,137,243,129,101,8,2,128,128,128,128,128,128,0,0,210,0,254,130,186,186,186,130,144,168,59,148,175,100,96,201,248,140,168,143,248,225,217,76,128,128,0,128,0,128,0,128,254,0,0,0,0,0,0,0,159,0,0,0,0,0,0,0,155,0,0,0,0,0,0,0,128,0,0,0,0,0,0,0
 
 end asm
 
