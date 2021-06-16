@@ -8,6 +8,7 @@ dim dir as Uinteger
 REM Rotor,RingStellum,CurrentPos
 DIM rotorSetup(2,2) as Ubyte = {{0,0,0},{1,0,0},{2,0,0}}
 DIM plugBoard(19) as Ubyte={99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99}
+DIM startingPos(2) as Ubyte
 
 REM 8 rotors+reflector, 26 wires + notch. If Notch is 99=>its a double Notch (M and Z)
 DIM rotorDefinition(8,26) as Ubyte = { _
@@ -124,7 +125,7 @@ if aa$<>bb$ AND code(aa$)>0
 		moveRotor(2,1)
 		memoryPointer=memoryPointer-1
 		if memoryPointer>210
-			memoryPointer=0
+			saveStartingPos()
 		end if
 		click()
 	end if
@@ -132,37 +133,37 @@ if aa$<>bb$ AND code(aa$)>0
 	if (tecla=49 OR tecla=50 OR tecla=51)
 		pintaRingSet(0)
 		changeRotor(tecla-49)
-		memoryPointer=0
+		saveStartingPos()
 		click()
 	end if
 	if (tecla=52 OR tecla=53 OR tecla=54)
 		pintaRingSet(0)	
 		moveRotor(tecla-52,0)
-		memoryPointer=0
+		saveStartingPos()
 		click()
 	end if
 	if (tecla=5)
 		pintaRingSet(0)
 		moveRotor(0,1)
-		memoryPointer=0
+		saveStartingPos()
 		click()
 	end if
 	if (tecla=8)
 		pintaRingSet(0)
 		moveRotor(1,1)
-		memoryPointer=0
+		saveStartingPos()
 		click()
 	end if
 	if (tecla=10)
 		pintaRingSet(0)
 		moveRotor(2,1)
-		memoryPointer=0
+		saveStartingPos()
 		click()
 	end if
 	if tecla>=65 AND tecla<=90
 		pintaRingSet(0)
 		plugSetup(tecla-65)
-		memoryPointer=0
+		saveStartingPos()
 		click()
 	end if
 	if tecla>=97 AND tecla <=122
@@ -179,7 +180,7 @@ if aa$<>bb$ AND code(aa$)>0
 		memory(memoryPointer,1)=encoded
 		memoryPointer=memoryPointer+1
 		if memoryPointer>209
-			memoryPointer=0
+			saveStartingPos()
 		end if
 
 	end if
@@ -194,7 +195,7 @@ if aa$<>bb$ AND code(aa$)>0
 		pausa (5000)
 	end if
 	if tecla=6 
-		memoryPointer=0
+		saveStartingPos()
 		rotorSetup(1,1)=rotorSetup(1,1)+1
 		if rotorSetup(1,1)>25 
 			rotorSetup(1,1)=0
@@ -205,7 +206,7 @@ if aa$<>bb$ AND code(aa$)>0
 
 	end if
 	if tecla=4
-		memoryPointer=0 
+		saveStartingPos() 
 		rotorSetup(2,1)=rotorSetup(2,1)+1
 		if rotorSetup(2,1)>25 
 			rotorSetup(2,1)=0
@@ -242,13 +243,13 @@ if aa$<>bb$ AND code(aa$)>0
 		print at 5,31;" "
 		printat42 (5,0) :print42 "To set Plugboard: press CS+[A..Z]         "
 		print at 6,31;" "
-		printat42 (6,0) :print42 "To encode/decode: press [a..z]            "
+		printat42 (6,0) :print42 "To encode/decode: press [a..z] & CS+0:UNDO"
 		print at 7,31;" "
 		printat42 (7,0) :print42 "To see your encoding records: press Space "
 		print at 8,31;" "
 		printat42 (8,0) :print42 "                                          "
 		print at 23,31;" ";
-		printat42 (23,0):print42 "  (c)2021 Menyiques (@setaseta on twitter)"
+		printat42 (23,0):print42 "(c)2021 @setaseta - tested by @desUBIKado "
 		
 						
 		do
@@ -284,13 +285,17 @@ elseif rotorSetup(n,0)=7
 	rot$=rot$+"VII "
 end if
 next n	
-printat42(0,0):  print42 "Walzenlage                    Ringstellung"
+printat42(0,0):  print42 "Walzenlage     Ringstellung        Anfang"
 printat42(1,0):  print42 rot$ 
-printat42(1,33): print42 (str(rotorSetup(0,1)+1))
-printat42(1,36): print42 (str(rotorSetup(1,1)+1))
-printat42(1,39): print42 (str(rotorSetup(2,1)+1))
+printat42(1,17): print42 (str(rotorSetup(0,1)+1))
+printat42(1,20): print42 (str(rotorSetup(1,1)+1))
+printat42(1,23): print42 (str(rotorSetup(2,1)+1))
+printat42(1,35): print42 (chr(startingPos(0)+65))
+printat42(1,37): print42 (chr(startingPos(1)+65))
+printat42(1,39): print42 (chr(startingPos(2)+65))
 
-printat42(3,0): print42 "       ---- Steckerverbindungen ----"                         
+
+printat42(3,0): print42 "     ---- Steckerverbindungen ----"                         
 for n=0 to 9
 
 	if plugBoard(n*2)=99
@@ -305,8 +310,8 @@ for n=0 to 9
 		char2=chr(plugBoard(n*2+1)+65)
 	end if
 	
-	printat42(4,n*3+7): print42(char1)
-	printat42(4,n*3+8): print42(char2)
+	printat42(4,n*3+5): print42(char1)
+	printat42(4,n*3+6): print42(char2)
 
 next n
 
@@ -317,16 +322,16 @@ e=0
 q=0
 w=0
 
-PLOT 127, 10: DRAW 0,130
 
-while (e*18+q*6+w<memoryPointer) 
-	printat42(6+e,q*7+w): print42 chr(memory(e*18+q*6+w,0)+65)
-	printat42(6+e,q*7+w+22): print42 chr(memory(e*18+q*6+w,1)+65)
+while (e*30+q*5+w<memoryPointer)
+	printat42(6+e,q*7+w): print42 chr(memory(e*18+q*6+w,1)+65)
+	printat42(6+e+10,q*7+w): print42 chr(memory(e*18+q*6+w,0)+65)
+
 	w=w+1
-	if w>5 
+	if w>4
 		w=0
 		q=q+1
-		if q>2
+		if q>5
 			q=0
 			e=e+1
 		end if
@@ -345,22 +350,34 @@ end while
 	if rotorSetup(0,0)=1 and rotorSetup(1,0)=3 and rotorSetup(2,0)=4
 		
 		if rotorSetup(0,1)=1 and rotorSetup(1,1)=20 and rotorSetup(2,1)=11
-			paper 1 
-			ink 6	
-			bright 1
-			flash 1
-			Printat42(0,0)
-			Print42 ("    Wikipedia fan detected. Congrats!!!   ")
-			Printat42(23,0)
-			Print42 ("     Please tell @setaseta on twitter     ")
-	
-			flash 0
+
+			if rotorSetup(2,2)=0
+				paper 1 
+				ink 6	
+				bright 1
+				flash 1
+				Printat42(0,0)
+				Print42 ("    Wikipedia fan detected. Congrats!!!   ")
+				Printat42(23,0)
+				Print42 ("     Please tell @setaseta on twitter     ")
+				bright 0
+				flash 0				
+			end if
 		end if	
 	end if
 end if
 bb$=aa$
 
 end while
+
+sub saveStartingPos()
+	startingPos(0)=rotorSetup(0,2)
+	startingPos(1)=rotorSetup(1,2)
+	startingPos(2)=rotorSetup(2,2)
+	memoryPointer=0
+
+
+end sub
 
 
 sub inicializaPantalla()
