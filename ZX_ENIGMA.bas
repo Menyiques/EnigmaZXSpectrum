@@ -248,7 +248,7 @@ if aa$<>bb$ AND code(aa$)>0
 		print at 8,31;" "
 		printat42 (8,0) :print42 "                                          "
 		print at 23,31;" ";
-		printat42 (23,0) :print42 "  (c)2021 Menyiques (@setaseta on twitter)"
+		printat42 (23,0):print42 "  (c)2021 Menyiques (@setaseta on twitter)"
 		
 						
 		do
@@ -523,7 +523,7 @@ sub moveRotor(byval rotor as ubyte, byval move as ubyte)
 	 	dim notch1,notch2 as ubyte
 
 
-	 	
+	 	if rotor>0 
 	 	if rotorSetup(rotor,0)>4
 	 		notch1=26+move
 	 		notch2=13+move
@@ -534,7 +534,7 @@ sub moveRotor(byval rotor as ubyte, byval move as ubyte)
 	 	if notch1=rotorSetup(rotor,2)+1 OR notch2=rotorSetup(rotor,2)+1
 			moveRotor(rotor-1,move)
 		end if
-		
+		end if
 	 	if move=0
 		rotorSetup(rotor,2)=rotorSetup(rotor,2)+1
 		if rotorSetup(rotor,2)=26
