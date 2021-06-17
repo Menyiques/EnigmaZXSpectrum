@@ -34,8 +34,8 @@ DIM inverseRotorDefinition(8,25) as Ubyte={ _
        {10,18,20,16,12,5 ,8 ,4 ,13,25,9 ,6 ,21,19,7 ,3 ,14,2 ,7 ,15,24,22,3 ,17,1 ,11} _
        } 
 
-DIM memory(210,2) as ubyte
-DIM memoryPointer as uinteger
+DIM memory(279,2) as ubyte
+DIM memoryPointer as integer
 
 rem busca el principio de los datos
 DIM charset as uinteger
@@ -124,7 +124,7 @@ if aa$<>bb$ AND code(aa$)>0
 	if tecla=12
 		moveRotor(2,1)
 		memoryPointer=memoryPointer-1
-		if memoryPointer>210
+		if memoryPointer<0
 			saveStartingPos()
 		end if
 		click()
@@ -179,7 +179,7 @@ if aa$<>bb$ AND code(aa$)>0
 		memory(memoryPointer,0)=tecla-97
 		memory(memoryPointer,1)=encoded
 		memoryPointer=memoryPointer+1
-		if memoryPointer>209
+		if memoryPointer>279
 			saveStartingPos()
 		end if
 
@@ -285,17 +285,14 @@ elseif rotorSetup(n,0)=7
 	rot$=rot$+"VII "
 end if
 next n	
-printat42(0,0):  print42 "Walzenlage     Ringstellung        Anfang"
-printat42(1,0):  print42 rot$ 
-printat42(1,17): print42 (str(rotorSetup(0,1)+1))
-printat42(1,20): print42 (str(rotorSetup(1,1)+1))
-printat42(1,23): print42 (str(rotorSetup(2,1)+1))
-printat42(1,35): print42 (chr(startingPos(0)+65))
-printat42(1,37): print42 (chr(startingPos(1)+65))
-printat42(1,39): print42 (chr(startingPos(2)+65))
+printat42(0,0):  print42 "Privat:      Walzenlage      Ringstellung"
+printat42(1,14):  print42 rot$ 
+printat42(1,17+14): print42 (str(rotorSetup(0,1)+1))
+printat42(1,20+14): print42 (str(rotorSetup(1,1)+1))
+printat42(1,23+14): print42 (str(rotorSetup(2,1)+1))
 
 
-printat42(3,0): print42 "     ---- Steckerverbindungen ----"                         
+printat42(2,0): print42 "             ---- Steckerverbindungen ----"                         
 for n=0 to 9
 
 	if plugBoard(n*2)=99
@@ -310,28 +307,31 @@ for n=0 to 9
 		char2=chr(plugBoard(n*2+1)+65)
 	end if
 	
-	printat42(4,n*3+5): print42(char1)
-	printat42(4,n*3+6): print42(char2)
+	printat42(3,n*3+12): print42(char1)
+	printat42(3,n*3+13): print42(char2)
 
 next n
 
-dim e as ubyte
+dim e as uinteger
 dim q as ubyte
 dim w as ubyte
 e=0
 q=0
 w=0
 
+plot 0,82:draw 255,0
+off=chr(startingPos(0)+65)+chr(startingPos(1)+65)+chr(startingPos(2)+65)
 
-while (e*30+q*5+w<memoryPointer)
-	printat42(6+e,q*7+w): print42 chr(memory(e*18+q*6+w,1)+65)
-	printat42(6+e+10,q*7+w): print42 chr(memory(e*18+q*6+w,0)+65)
+printat42(14,0): print42 "Offentlich: "+off
 
+while (e*35+q*5+w<memoryPointer)
+	printat42(e+5,q*6+w): print42 chr(memory(e*35+q*5+w,0)+65)
+	printat42(e+15,q*6+w): print42 chr(memory(e*35+q*5+w,1)+65)
 	w=w+1
 	if w>4
 		w=0
 		q=q+1
-		if q>5
+		if q>6
 			q=0
 			e=e+1
 		end if
