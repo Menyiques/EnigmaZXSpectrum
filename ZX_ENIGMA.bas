@@ -2,8 +2,9 @@
 
 dim a, tecla as Ubyte
 dim n as Uinteger
-
+dim idioma as ubyte
 dim dir as Uinteger
+dim pascua as ubyte=0
 
 REM Rotor,RingStellum,CurrentPos
 DIM rotorSetup(2,2) as Ubyte = {{0,0,0},{1,0,0},{2,0,0}}
@@ -115,6 +116,7 @@ End Function
 
 REM Bucle principal
 bb$=""
+idioma=0
 while 1=1
 
 aa$=inkey$
@@ -217,45 +219,78 @@ if aa$<>bb$ AND code(aa$)>0
 	end if
 
 	if tecla=13
+
+		
 		border 0
 		mainScreen(1)
 		click()
 		pausa(20000)
-
-		printat42(7,7+n*7)
-		print42(aa$)
 		paper 0
 		ink 7
 
-		dir=charset+1224
+		do
+		if idioma=0
+			dir=charset+1224
+		else
+			dir=charset+1352
+		end if
 		poke uinteger 23675,dir
 		
-		print at 0,31;" "
-		printat42 (0,0) :print42 "      ENIGMA MACHINE EMULATOR             ":print at 0,27;"\A\B\C\D"
-		print at 1,31;" "
-		printat42 (1,0) :print42 "      -----------------------             ":print at 1,27;"\E\F\G\H"
-		print at 2,31;" "
-		printat42 (2,0) :print42 "To select rotors: press 1,2,3             ":print at 2,27;"\I\J\K\L"
-		print at 3,31;" "
-		printat42 (3,0) :print42 "To set Ringstellung: press CS+1,2,3       ":print at 3,27;"\M\N\O\P"
-		print at 4,31;" "
-		printat42 (4,0) :print42 "To rotate rotors: press 4,5,6 or CS+4,5,6 "
-		print at 5,31;" "
-		printat42 (5,0) :print42 "To set Plugboard: press CS+[A..Z]         "
-		print at 6,31;" "
-		printat42 (6,0) :print42 "To encode/decode: press [a..z] & CS+0:UNDO"
-		print at 7,31;" "
-		printat42 (7,0) :print42 "To see your encoding records: press Space "
-		print at 8,31;" "
-		printat42 (8,0) :print42 "                                          "
-		print at 23,31;" ";
-		printat42 (23,0):print42 "(c)2021 @setaseta - tested by @desUBIKado "
-		
-						
-		do
+		if idioma=0
+			print at 0,31;" "
+			printat42 (0,0) :print42 "        EMULADOR DE ENIGMA          E=Eng "
+			print at 1,31;" "
+			printat42 (1,0) :print42 "      -----------------------             ":print at 1,27;"\A\B\C\D"
+			print at 2,31;" "
+			printat42 (2,0) :print42 "1,2,3 para cambiar rotores                ":print at 2,27;"\E\F\G\H"
+			print at 3,31;" "
+			printat42 (3,0) :print42 "CS+1,2,3 para ajustar Ringstellung        ":print at 3,27;"\I\J\K\L"
+			print at 4,31;" "
+			printat42 (4,0) :print42 "4,5,6 o CS+4,5,6 para rotar rotores       ":print at 4,27;"\M\N\O\P"
+			print at 5,31;" "
+			printat42 (5,0) :print42 "CS+[A..Z] para echufar cables del panel   "
+			print at 6,31;" "
+			printat42 (6,0) :print42 "[a..z] Para (des)codificar y CS+0 deshacer"
+			print at 7,31;" "
+			printat42 (7,0) :print42 "Space para ver el historial               "
+			print at 8,31;" "
+			printat42 (8,0) :print42 "                                          "
+			print at 23,31;" ";
+			printat42 (23,0):print42 "(c)2021 @setaseta - tests por @desUBIKado "
+		else
+			print at 0,31;" "
+			printat42 (0,0) :print42 "      ENIGMA MACHINE EMULATOR       E=Esp "
+			print at 1,31;" "
+			printat42 (1,0) :print42 "      -----------------------             ":print at 1,27;"\A\B\C\D"
+			print at 2,31;" "
+			printat42 (2,0) :print42 "To select rotors: press 1,2,3             ":print at 2,27;"\E\F\G\H"
+			print at 3,31;" "
+			printat42 (3,0) :print42 "To set Ringstellung: press CS+1,2,3       ":print at 3,27;"\I\J\K\L"
+			print at 4,31;" "
+			printat42 (4,0) :print42 "To set Plugboard: press CS+[A..Z]         ":print at 4,27;"\M\N\O\P"
+			print at 5,31;" "
+			printat42 (5,0) :print42 "To rotate rotors: press 4,5,6 or CS+4,5,6 "
+			print at 6,31;" "
+			printat42 (6,0) :print42 "To encode/decode: press [a..z] & CS+0:UNDO"
+			print at 7,31;" "
+			printat42 (7,0) :print42 "To see your encoding records: press Space "
+			print at 8,31;" "
+			printat42 (8,0) :print42 "                                          "
+			print at 23,31;" ";
+			printat42 (23,0):print42 "(c)2021 @setaseta - tested by @desUBIKado "
+		endif
+	    
+	    do
 		loop while code(inkey$)=13
+		
 		do
 		loop while inkey$=""
+		
+	    if code(inkey$)=101 
+	    	idioma=(idioma+1) mod 2
+	    end if
+
+	    loop while code(inkey$)=101
 				
 		inicializaPantalla()
 		click()
@@ -351,7 +386,7 @@ end while
 		
 		if rotorSetup(0,1)=1 and rotorSetup(1,1)=20 and rotorSetup(2,1)=11
 
-			if rotorSetup(2,2)=0
+			if rotorSetup(2,2)=0 and pascua=0
 				paper 1 
 				ink 6	
 				bright 1
@@ -360,8 +395,11 @@ end while
 				Print42 ("    Wikipedia fan detected. Congrats!!!   ")
 				Printat42(23,0)
 				Print42 ("     Please tell @setaseta on twitter     ")
-				bright 0
-				flash 0				
+				pausa(50000)
+				do
+				loop while inkey$=""
+					inicializaPantalla()
+				pascua=1
 			end if
 		end if	
 	end if
@@ -383,6 +421,8 @@ end sub
 sub inicializaPantalla()
 	 
 	border 7 
+	bright 0
+	flash 0	
 	mainScreen(0)
 
 	for n=0 to 9
@@ -704,9 +744,10 @@ defb 0,63,12,12,12,12,12,7,0,254,216,216,216,216,216,152,7,7,7,3,3,3,15,0,152,15
 defb 0,255,51,51,51,51,51,30,0,254,108,108,108,108,108,108,30,30,30,12,12,12,63,0,108,108,108,108,108,108,254,0
 defb 0,255,103,103,103,103,103,61,0,255,182,182,182,182,182,182,61,61,61,25,25,25,127,0,182,182,182,182,182,182,255,0
 
-qr:
+qr_es:
+defb 254,130,186,186,186,130,254,0,73,63,235,117,33,67,170,232,63,32,46,174,174,160,191,0,128,128,128,128,128,128,128,0,239,57,123,212,3,61,182,88,180,180,65,148,14,31,249,104,98,241,228,97,19,8,5,0,0,0,0,128,128,0,128,0,183,0,254,130,186,186,186,130,210,151,192,242,239,61,155,205,250,137,173,141,250,140,180,222,128,0,128,128,0,0,128,128,254,0,0,0,0,0,0,0,187,0,0,0,0,0,0,0,9,0,0,0,0,0,0,0,128,0,0,0,0,0,0,0
+qr_en:
 defb 254,130,186,186,186,130,254,0,239,225,178,215,7,156,170,76,63,160,46,46,46,160,191,128,128,128,128,128,128,128,128,0,206,244,114,61,191,239,63,48,16,111,30,180,170,134,6,236,151,156,137,243,129,101,8,2,128,128,128,128,128,128,0,0,210,0,254,130,186,186,186,130,144,168,59,148,175,100,96,201,248,140,168,143,248,225,217,76,128,128,0,128,0,128,0,128,254,0,0,0,0,0,0,0,159,0,0,0,0,0,0,0,155,0,0,0,0,0,0,0,128,0,0,0,0,0,0,0
-
 end asm
 
 
