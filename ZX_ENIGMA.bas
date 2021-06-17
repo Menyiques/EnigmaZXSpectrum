@@ -35,7 +35,7 @@ DIM inverseRotorDefinition(8,25) as Ubyte={ _
        {10,18,20,16,12,5 ,8 ,4 ,13,25,9 ,6 ,21,19,7 ,3 ,14,2 ,7 ,15,24,22,3 ,17,1 ,11} _
        } 
 
-DIM memory(279,2) as ubyte
+DIM memory(249,2) as ubyte
 DIM memoryPointer as integer
 
 rem busca el principio de los datos
@@ -123,12 +123,9 @@ aa$=inkey$
 if aa$<>bb$ AND code(aa$)>0
 	tecla=code (aa$)
 
-	if tecla=12
+	if tecla=12 and memoryPointer>0
 		moveRotor(2,1)
 		memoryPointer=memoryPointer-1
-		if memoryPointer<0
-			saveStartingPos()
-		end if
 		click()
 	end if
 
@@ -181,7 +178,7 @@ if aa$<>bb$ AND code(aa$)>0
 		memory(memoryPointer,0)=tecla-97
 		memory(memoryPointer,1)=encoded
 		memoryPointer=memoryPointer+1
-		if memoryPointer>279
+		if memoryPointer>249
 			saveStartingPos()
 		end if
 
@@ -238,7 +235,7 @@ if aa$<>bb$ AND code(aa$)>0
 		
 		if idioma=0
 			print at 0,31;" "
-			printat42 (0,0) :print42 "        EMULADOR DE ENIGMA          E=Eng "
+			printat42 (0,0) :print42 "      EMULADOR MAQUINA ENIGMA       E=Eng "
 			print at 1,31;" "
 			printat42 (1,0) :print42 "      -----------------------             ":print at 1,27;"\A\B\C\D"
 			print at 2,31;" "
@@ -248,11 +245,11 @@ if aa$<>bb$ AND code(aa$)>0
 			print at 4,31;" "
 			printat42 (4,0) :print42 "4,5,6 o CS+4,5,6 para rotar rotores       ":print at 4,27;"\M\N\O\P"
 			print at 5,31;" "
-			printat42 (5,0) :print42 "CS+[A..Z] para echufar cables del panel   "
+			printat42 (5,0) :print42 "CS+[A..Z] para enchufar cables del panel  "
 			print at 6,31;" "
 			printat42 (6,0) :print42 "[a..z] Para (des)codificar y CS+0 deshacer"
 			print at 7,31;" "
-			printat42 (7,0) :print42 "Space para ver el historial               "
+			printat42 (7,0) :print42 "SPACE para ver el historial               "
 			print at 8,31;" "
 			printat42 (8,0) :print42 "                                          "
 			print at 23,31;" ";
@@ -273,7 +270,7 @@ if aa$<>bb$ AND code(aa$)>0
 			print at 6,31;" "
 			printat42 (6,0) :print42 "To encode/decode: press [a..z] & CS+0:UNDO"
 			print at 7,31;" "
-			printat42 (7,0) :print42 "To see your encoding records: press Space "
+			printat42 (7,0) :print42 "To see your encoding records: press SPACE "
 			print at 8,31;" "
 			printat42 (8,0) :print42 "                                          "
 			print at 23,31;" ";
@@ -325,7 +322,9 @@ printat42(1,14):  print42 rot$
 printat42(1,17+14): print42 (str(rotorSetup(0,1)+1))
 printat42(1,20+14): print42 (str(rotorSetup(1,1)+1))
 printat42(1,23+14): print42 (str(rotorSetup(2,1)+1))
-
+printat42(4,0): print42 (str(memoryPointer)+"/250")
+off=chr(startingPos(0)+65)+chr(startingPos(1)+65)+chr(startingPos(2)+65)
+printat42(1,1): print42 off
 
 printat42(2,0): print42 "             ---- Steckerverbindungen ----"                         
 for n=0 to 9
@@ -347,6 +346,8 @@ for n=0 to 9
 
 next n
 
+printat42(14,0): print42 "Offentlich: "
+
 dim e as uinteger
 dim q as ubyte
 dim w as ubyte
@@ -355,9 +356,7 @@ q=0
 w=0
 
 plot 0,82:draw 255,0
-off=chr(startingPos(0)+65)+chr(startingPos(1)+65)+chr(startingPos(2)+65)
 
-printat42(14,0): print42 "Offentlich: "+off
 
 while (e*35+q*5+w<memoryPointer)
 	printat42(e+5,q*6+w): print42 chr(memory(e*35+q*5+w,0)+65)
@@ -744,12 +743,12 @@ defb 0,63,12,12,12,12,12,7,0,254,216,216,216,216,216,152,7,7,7,3,3,3,15,0,152,15
 defb 0,255,51,51,51,51,51,30,0,254,108,108,108,108,108,108,30,30,30,12,12,12,63,0,108,108,108,108,108,108,254,0
 defb 0,255,103,103,103,103,103,61,0,255,182,182,182,182,182,182,61,61,61,25,25,25,127,0,182,182,182,182,182,182,255,0
 
-qr_es:
-defb 254,130,186,186,186,130,254,0,73,63,235,117,33,67,170,232,63,32,46,174,174,160,191,0,128,128,128,128,128,128,128,0,239,57,123,212,3,61,182,88,180,180,65,148,14,31,249,104,98,241,228,97,19,8,5,0,0,0,0,128,128,0,128,0,183,0,254,130,186,186,186,130,210,151,192,242,239,61,155,205,250,137,173,141,250,140,180,222,128,0,128,128,0,0,128,128,254,0,0,0,0,0,0,0,187,0,0,0,0,0,0,0,9,0,0,0,0,0,0,0,128,0,0,0,0,0,0,0
-qr_en:
-defb 254,130,186,186,186,130,254,0,239,225,178,215,7,156,170,76,63,160,46,46,46,160,191,128,128,128,128,128,128,128,128,0,206,244,114,61,191,239,63,48,16,111,30,180,170,134,6,236,151,156,137,243,129,101,8,2,128,128,128,128,128,128,0,0,210,0,254,130,186,186,186,130,144,168,59,148,175,100,96,201,248,140,168,143,248,225,217,76,128,128,0,128,0,128,0,128,254,0,0,0,0,0,0,0,159,0,0,0,0,0,0,0,155,0,0,0,0,0,0,0,128,0,0,0,0,0,0,0
-end asm
 
+defb 0,0,0,31,16,23,23,23,0,0,0,201,71,93,78,68,0,0,0,39,228,101,181,53,0,0,0,240,16,208,208,208,16,31,0,29,7,15,26,0,72,213,29,246,54,104,146,97,116,87,0,140,158,60,140,194,16,240,0,64,32,128,48,112,7,22,11,22,0,31,16,23,163,223,13,250,18,216,94,93,225,32,0,95,241,21,81,255,0,176,0,80,32,176,176,64,23,23,16,31,0,0,0,0,71,83,89,215,0,0,0,0,177,118,187,97,0,0,0,0,128,144,208,48,0,0,0,0
+
+defb 0,0,0,31,16,23,23,23,0,0,0,221,92,86,90,64,0,0,0,231,52,69,229,229,0,0,0,240,16,208,208,208,16,31,0,25,30,14,7,23,83,213,9,194,141,67,182,245,148,87,144,18,243,209,158,80,16,240,0,240,144,48,112,48,29,7,6,26,0,31,16,23,144,224,29,82,21,199,82,85,204,193,128,31,17,117,145,255,176,0,64,16,144,0,240,0,23,23,16,31,0,0,0,0,76,76,89,211,0,0,0,0,156,27,41,243,0,0,0,0,48,32,144,112,0,0,0,0
+
+end asm
 
 sub mainScreen(screen as ubyte)
 
