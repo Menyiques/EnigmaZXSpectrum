@@ -104,7 +104,7 @@ Function codifica(byval c As ubyte) As ubyte
         c=plugBoard((n*2)+1)
         n=10
         end If
-        if plugBoard(n*2+1)=c And plugBoard(n*2)<99 And n<99
+        if plugBoard(n*2+1)=c And plugBoard(n*2)<99 And n<10
         c=plugBoard(n*2)
         n=10
         end If
@@ -404,6 +404,14 @@ end while
 	end if
 end if
 bb$=aa$
+
+if memoryPointer>= 245 
+	border 2
+elseif memoryPointer>=240
+	border 6
+else
+	border 7
+end if
 
 end while
 
