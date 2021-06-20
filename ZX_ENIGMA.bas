@@ -35,7 +35,7 @@ DIM inverseRotorDefinition(8,25) as Ubyte={ _
        {10,18,20,16,12,5 ,8 ,4 ,13,25,9 ,6 ,21,19,7 ,3 ,14,2 ,7 ,15,24,22,3 ,17,1 ,11} _
        } 
 
-DIM memory(249,2) as ubyte
+DIM memory(250,2) as ubyte
 DIM memoryPointer as integer
 
 rem busca el principio de los datos
@@ -165,8 +165,17 @@ if aa$<>bb$ AND code(aa$)>0
 		saveStartingPos()
 		click()
 	end if
+
 	if tecla>=97 AND tecla <=122
 		dim encoded as ubyte
+
+		if memoryPointer>249
+		startingPos(0)=rotorSetup(0,2)
+		startingPos(1)=rotorSetup(1,2)
+		startingPos(2)=rotorSetup(2,2)
+		memoryPointer=0
+		endif
+		
 		pintaRingSet(0)
 		moveRotor(2,0)
 		encoded=codifica(tecla-97)
@@ -178,11 +187,9 @@ if aa$<>bb$ AND code(aa$)>0
 		memory(memoryPointer,0)=tecla-97
 		memory(memoryPointer,1)=encoded
 		memoryPointer=memoryPointer+1
-		if memoryPointer>249
-			saveStartingPos()
-		end if
-
+		
 	end if
+
 	if tecla=7 
 		memoryPointer=0
 		rotorSetup(0,1)=rotorSetup(0,1)+1
@@ -405,7 +412,9 @@ end while
 end if
 bb$=aa$
 
-if memoryPointer>= 245 
+if memoryPointer=250
+	border 0
+elseif memoryPointer>= 245 
 	border 2
 elseif memoryPointer>=240
 	border 6
@@ -420,8 +429,6 @@ sub saveStartingPos()
 	startingPos(1)=rotorSetup(1,2)
 	startingPos(2)=rotorSetup(2,2)
 	memoryPointer=0
-
-
 end sub
 
 
