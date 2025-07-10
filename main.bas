@@ -395,8 +395,8 @@ sub ilumina (byval letra as ubyte,byval modo as ubyte)
 	dim filAtt1,filAtt2 as ubyte
 
 	if modo=0
-		filAtt1=7
-		filAtt2=71
+		filAtt1=71
+		filAtt2=7
 	else
 		filAtt1=70
 		filAtt2=70
