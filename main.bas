@@ -21,17 +21,17 @@ DIM rotorSetup(2,2) as Ubyte = {{0,0,0},{1,0,0},{2,0,0}}
 DIM plugBoard(19) as Ubyte={99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99}
 DIM startingPos(2) as Ubyte
 
-REM 8 rotors+reflector, 26 wires + notch. If Notch is 99=>its a double Notch (M and Z)
+REM 8 rotors+reflector, 26 wires + notch. If Notch is 99=>its a double Notch (M and Z)' Reflector - double notch
 DIM rotorDefinition(8,26) as Ubyte = { _
-       {24,16,18,4 ,12,13,5 ,22,7 ,14,3 ,21,2 ,23,24,19,14,10,13,6 ,8 ,1 ,25,12,2 ,20,0 }, _ ' Rotor I 
-       {4 ,9 ,10,2 ,7 ,1 ,23,9 ,13,16,3 ,8 ,2 ,9 ,10,18,7 ,3 ,0 ,22,6 ,13,5 ,20,4 ,10,17}, _ ' Rotor II
-       {0 ,8 ,1 ,7 ,14,3 ,11,13,15,18,1 ,22,10,6 ,24,13,0 ,15,7 ,20,21,3 ,9 ,24,16,5 ,5 }, _ ' Rotor III
-       {1 ,2 ,3 ,4 ,5 ,6 ,22,8 ,9 ,10,13,10,13,0 ,10,15,18,5 ,14,7 ,16,17,24,21,18,15,22}, _ ' Rotor IV
-       {4 ,17,12,18,11,20,3 ,19,16,7 ,10,23,5 ,20,9 ,22,23,14,1 ,13,16,8 , 6,15,24,2 ,10}, _ ' Rotor V
-       {21,24,25,14,2 ,3 ,13,17,12,6 , 8,18,1 ,20,23,8 ,10,5 ,20,16,22,19,9 ,7 ,4 ,11,26}, _ ' Rotor VI
-       {9 ,14,4 ,18,10,15,6 ,24,16,7 ,17,19,1 ,20,11,2 ,13,19,8 ,25,3 ,16,12,5 ,21,23,99}, _ ' Rotor VII - double notch
-       {13,24,7 ,4 ,2 ,12,22,16,4 ,15,8 ,11,15,1 ,6 ,16,10,17,3 ,18,21,9 ,14,19,5 ,20,99}, _ ' Rotor VIII - double notch
-       {5 ,9 ,14,4 ,15,6 ,17,7 ,20,18,25,7 ,3 ,16,11,2 ,10,21,12,3 ,19,13,24,1 ,8 ,22,99} _  ' Reflector - double notch
+       {24,16,18,4 ,12,13,5 ,22,7 ,14,3 ,21,2 ,23,24,19,14,10,13,6 ,8 ,1 ,25,12,2 ,20,0 }, _ ' Reflector
+       {4 ,9 ,10,2 ,7 ,1 ,23,9 ,13,16,3 ,8 ,2 ,9 ,10,18,7 ,3 ,0 ,22,6 ,13,5 ,20,4 ,10,16}, _ ' Rotor I
+       {0 ,8 ,1 ,7 ,14,3 ,11,13,15,18,1 ,22,10,6 ,24,13,0 ,15,7 ,20,21,3 ,9 ,24,16,5 ,4 }, _ ' Rotor II
+       {1 ,2 ,3 ,4 ,5 ,6 ,22,8 ,9 ,10,13,10,13,0 ,10,15,18,5 ,14,7 ,16,17,24,21,18,15,21}, _ ' Rotor III
+       {4 ,17,12,18,11,20,3 ,19,16,7 ,10,23,5 ,20,9 ,22,23,14,1 ,13,16,8 , 6,15,24,2 ,9}, _ ' Rotor IV
+       {21,24,25,14,2 ,3 ,13,17,12,6 , 8,18,1 ,20,23,8 ,10,5 ,20,16,22,19,9 ,7 ,4 ,11,25}, _ ' Rotor V
+       {9 ,14,4 ,18,10,15,6 ,24,16,7 ,17,19,1 ,20,11,2 ,13,19,8 ,25,3 ,16,12,5 ,21,23,99}, _ ' Rotor VI - double notch
+       {13,24,7 ,4 ,2 ,12,22,16,4 ,15,8 ,11,15,1 ,6 ,16,10,17,3 ,18,21,9 ,14,19,5 ,20,99}, _ ' Rotor VII - double notch
+       {5 ,9 ,14,4 ,15,6 ,17,7 ,20,18,25,7 ,3 ,16,11,2 ,10,21,12,3 ,19,13,24,1 ,8 ,22,99} _  ' Rotor VIII
        } 
 
 DIM inverseRotorDefinition(8,25) as Ubyte={ _
@@ -60,7 +60,6 @@ idioma=0
 calculaNotches()
 
 do
-
 aa$=inkey$
 if aa$<>bb$ AND code(aa$)>0
 	tecla=code (aa$)
@@ -532,13 +531,13 @@ sub moveRotor(rotor as ubyte,move as ubyte, free as ubyte)
 	 	 if rotor>0 and free=0   	
                 border 7    
            if (rotor=2 and move=0 and(notch(1,0)=rotorSetup(1,2) or notch(1,1)=rotorSetup(1,2))) or _
-              (rotor=2 and move=1 and ( notch(1,0)=rotorSetup(1,2)-1 or notch(1,1)=rotorSetup(1,2)-1))
+              (rotor=2 and move=1 and (notch(1,0)=anterior(rotorSetup(1,2)) or notch(1,1)=anterior(rotorSetup(1,2)) ))
                 moveRotor(1,move,1)
                 moveRotor(0,move,1)
            end if
     	   
     	   if (move=0 and (notch(rotor,0)=rotorSetup(rotor,2) OR notch(rotor,1)=rotorSetup(rotor,2))) or _
-    	      (move=1 and (notch(rotor,0)=rotorSetup(rotor,2)-1 OR notch(rotor,1)=rotorSetup(rotor,2)-1))
+    	      (move=1 and (notch(rotor,0)=anterior(rotorSetup(rotor,2)) OR notch(rotor,1)=anterior(rotorSetup(rotor,2)) ))
     			moveRotor(rotor-1,move,0)
     	   end if
     	   
@@ -567,10 +566,10 @@ end sub
 sub calculaNotches()
     for n=0 to 2
         if rotorSetup(n,0)>4 ' Si el rotor es 5 o superior tiene 2 notches
-            notch(n,0)=25
-            notch(n,1)=12
+            notch(n,0)=12
+            notch(n,1)=25
           else
-            notch(n,0)=rotorDefinition(rotorSetup(n,0)+1,26)-1 ' si no, tiene 1 notch que está definido en rotorSetup
+            notch(n,0)=rotorDefinition(rotorSetup(n,0)+1,26) ' si no, tiene 1 notch que está definido en rotorSetup
             notch(n,1)=notch(n,0)
         end if     
     next n
